@@ -1,0 +1,7 @@
+# Updates pm
+apt-get update -y
+apt-get upgrade -y
+
+# Install packages
+apt-get install gcc -y
+apt-get install git -y
