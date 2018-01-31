@@ -1,5 +1,6 @@
 FROM alpine:latest
 MAINTAINER Clement T. <me@trosa.io>
+LABEL Description="Your editor sucks ; emacs > vim"
 
 RUN apk add --no-cache emacs
 
