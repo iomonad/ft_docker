@@ -1,0 +1,7 @@
+ORPort 9001
+
+Nickname g0tr00t
+
+ContactInfo ${CONTACT_GPG_FINGERPRINT} ${CONTACT_NAME} ${CONTACT_EMAIL}
+
+ExitPolicy reject *:*
