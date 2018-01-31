@@ -1,0 +1,7 @@
+docker service create \
+	   --name engineering-bay \
+	   --replicas 2 \ # This is the meat
+	   --network overmind \
+	   --env OC_USERNAME=ctrouill \
+	   --env OC_PASSWD=p4$$w0rd \
+	   42school/engineering-bay
