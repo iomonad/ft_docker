@@ -1,3 +1,5 @@
-FROM alpine:latest
+FROM debian:9
 
-ENTRYPOINT ["telnet" "towel.blinkenlights.nl"]
+RUN apt-get update && apt-get install telnet
+
+ENTRYPOINT "/usr/bin/telnet" "towel.blinkenlights.nl"
