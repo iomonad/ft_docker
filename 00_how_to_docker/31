@@ -1,0 +1,3 @@
+# Docker apply a xargs like procedure
+# while listing multi service hashes
+docker service rm  $(docker service ls -q)
