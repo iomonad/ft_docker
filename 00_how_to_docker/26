@@ -1,3 +1,4 @@
+# --replicas is the meat
 docker service create \
 	   --name engineering-bay \
 	   --replicas 2 \ # This is the meat
