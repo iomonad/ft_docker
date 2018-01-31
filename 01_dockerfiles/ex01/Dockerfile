@@ -1,5 +1,6 @@
 FROM debian:buster
 MAINTAINER Clement T. <me@trosa.io>
+LABEL Description="Deploy teamspeak3 server"
 
 ENV TSV=3.0.13.8
 
