@@ -1,0 +1,2 @@
+# Force to autoshutdown running containers
+docker rm --force $(docker ps -aq)
