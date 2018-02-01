@@ -1,4 +1,4 @@
-FROM ruby
+FROM ruby:2.3
 MAINTAINER Clement T. <me@trosa.io>
 LABEL Description="Create ROR layer"
 
