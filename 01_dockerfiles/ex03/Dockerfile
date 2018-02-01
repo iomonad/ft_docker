@@ -20,7 +20,7 @@ RUN go get -u -tags "sqlite" github.com/gogits/gogs
 WORKDIR $GOPATH/src/github.com/gogits/gogs
 
 # Build from source
-RUN go build -tags "sqlite"
+RUN go build -v -tags "sqlite"
 
 # Add Service User
 RUN useradd gogs
@@ -30,4 +30,5 @@ RUN mkdir /gogs/data
 ENV USER=gogs
 
 EXPOSE 3000
+EXPOSE 22
 ENTRYPOINT ["./gogs" "web"]
