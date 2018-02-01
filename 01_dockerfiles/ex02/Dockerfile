@@ -9,8 +9,7 @@ RUN ["gem", "install", "rails"]
 ONBUILD COPY [".", "/opt/app"]
 ONBUILD WORKDIR /opt/app
 
-ONBUILD RUN ["bundle", "install"]
-ONBUILD RUN ["rails", "db:migrate"]
-ONBUILD RUN ["rails", "db:seed"]
-
+ONBUILD RUN gem install bundler && bundle install --jobs 20 --retry 5
+ONBUILD RUN CMD ["bundle", "exec", "rails", "db:migrate"]
+ONBUILD RUN CMD ["bundle", "exec", "rails", "db:seed"]
 ONBUILD EXPOSE 3000
