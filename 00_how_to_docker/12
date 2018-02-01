@@ -1,4 +1,4 @@
-docker run -d --restart on-failure \
+docker run -d --restart always \
 	   -v hatchery:/var/lib/mysql \
 	   -e MYSQL_ROOT_PASSWORD=Kerrigan \
 	   -e MYSQL_DATABASE=zerglings \
