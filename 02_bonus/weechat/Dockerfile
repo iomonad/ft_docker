@@ -2,7 +2,7 @@ FROM alpine:latest
 MAINTAINER Clement T. <me@trosa.io>
 LABEL Description="Create weechat relay instance"
 
-RUN apk-install weechat ruby python python-dev py-pip build-base py-dbus && \
+RUN apk update && apk add weechat ruby python python-dev py-pip build-base py-dbus && \
     mkdir /data && \
 	pip install --upgrade pip && \
 	pip install notify2 && \

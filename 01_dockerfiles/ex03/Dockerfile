@@ -1,34 +1,31 @@
-FROM alpine:latest
+FROM debian:latest
 MAINTAINER Clement T. <me@trosa.io>
 LABEL Description="Create devel Gogs instance"
 
-# Install dependencies
-RUN apk update && apk add curl git go musl-dev \
-	&& rm -rf /var/cache/apk/*
+RUN apt-get update -y \
+	&& apt-get upgrade -y \
+	&& apt-get install -y gcc git curl
 
-# Set Go-Paths
-ENV GOROOT /usr/lib/go
-ENV GOPATH /gopath
-ENV GOBIN /gopath/bin
-ENV PATH $PATH:$GOROOT/bin:$GOPATH/bin
-
+# Set go build path
+ENV GOROOT=$HOME/local/go
+ENV GOPATH=$HOME/gogs
+ENV PATH=$PATH:$GOROOT/bin:$GOPATH/
+WORKDIR $HOME/local
+RUN curl -O https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz
+RUN tar -xzvf go1.8.linux-amd64.tar.gz
 WORKDIR $GOPATH/src/github.com/gogits
 
-# Prepare buildpath
+# Build devel branch
 RUN git clone --depth=1 -b develop https://github.com/gogits/gogs
 RUN go get -u -tags "sqlite" github.com/gogits/gogs
 WORKDIR $GOPATH/src/github.com/gogits/gogs
+RUN go build -tags "sqlite"
+RUN mkdir $GOPATH/src/github.com/gogits/logs
+RUN mkdir /root/gogs-repositories
+RUN mkdir /root/data
 
-# Build from source
-RUN go build -v -tags "sqlite"
-
-# Add Service User
-RUN useradd gogs
-RUN mkdir /gogs/gogs-repositories
-RUN mkdir /gogs/data
-
-ENV USER=gogs
-
+# Run it
+ENV USER=root
 EXPOSE 3000
 EXPOSE 22
 ENTRYPOINT ["./gogs" "web"]
