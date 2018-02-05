@@ -1,31 +1,27 @@
 FROM debian:latest
 MAINTAINER Clement T. <me@trosa.io>
-LABEL Description="Create devel Gogs instance"
+LABEL Description="Create GitLab instance"
+
+# Salut les githubers, le sujet
+# a change c'est desormais gitlab
+# a deployer.
 
 RUN apt-get update -y \
 	&& apt-get upgrade -y \
 	&& apt-get install -y gcc git curl
 
-# Set go build path
-ENV GOROOT=$HOME/local/go
-ENV GOPATH=$HOME/gogs
-ENV PATH=$PATH:$GOROOT/bin:$GOPATH/
-WORKDIR $HOME/local
-RUN curl -O https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz
-RUN tar -xzvf go1.8.linux-amd64.tar.gz
-WORKDIR $GOPATH/src/github.com/gogits
+# Prepare all teh things
+RUN useradd -ms /bin/bash gitsucks
+USER gitsucks
+WORKDIR /home/gitsucks
 
 # Build devel branch
-RUN git clone --depth=1 -b develop https://github.com/gogits/gogs
-RUN go get -u -tags "sqlite" github.com/gogits/gogs
-WORKDIR $GOPATH/src/github.com/gogits/gogs
-RUN go build -tags "sqlite"
-RUN mkdir $GOPATH/src/github.com/gogits/logs
-RUN mkdir /root/gogs-repositories
-RUN mkdir /root/data
+RUN git clone --depth=1 https://gitlab.com/gitlab-org/gitlab-ce.git
+RUN cp config/gitlab.yml.example config/gitlab.yml
+RUN sed -i -e 's/# user: git/user: gitsucks/g'
+RUN cp config/secrets.yml.example config/secrets.yml
+# Create dir
 
-# Run it
-ENV USER=root
 EXPOSE 3000
 EXPOSE 22
 ENTRYPOINT ["./gogs" "web"]
