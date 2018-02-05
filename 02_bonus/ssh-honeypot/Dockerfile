@@ -1,7 +1,7 @@
 FROM ubuntu:14.04
 
 RUN apt-get update && \
-    apt-get upgrade -y \
+    apt-get upgrade -y && \
 	apt-get install -y openssh-server && \
 	mkdir /var/run/sshd
 
