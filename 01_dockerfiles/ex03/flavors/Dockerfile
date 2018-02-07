@@ -18,23 +18,23 @@ RUN /etc/init.d/postgresql start
 RUN adduser --disabled-login --gecos 'GitLab' git
 
 # Install Redis database
-RUN apt-get install -y redis-server
-RUN cp /etc/redis/redis.conf /etc/redis/redis.conf.orig
-RUN sed 's/^port .*/port 0/' /etc/redis/redis.conf.orig | sudo tee /etc/redis/redis.conf
-RUN echo 'unixsocket /var/run/redis/redis.sock' | sudo tee -a /etc/redis/redis.conf
-RUN echo 'unixsocketperm 770' | sudo tee -a /etc/redis/redis.conf
-RUN mkdir /var/run/redis
-RUN chown redis:redis /var/run/redis
-RUN chmod 755 /var/run/redis
-RUN service redis-server stop
-RUN sudo usermod -aG redis git # Add git to redis group
+# RUN apt-get install -y redis-server
+# RUN cp /etc/redis/redis.conf /etc/redis/redis.conf.orig
+# RUN sed 's/^port .*/port 0/' /etc/redis/redis.conf.orig | sudo tee /etc/redis/redis.conf
+# RUN echo 'unixsocket /var/run/redis/redis.sock' | sudo tee -a /etc/redis/redis.conf
+# RUN echo 'unixsocketperm 770' | sudo tee -a /etc/redis/redis.conf
+# RUN mkdir /var/run/redis
+# RUN chown redis:redis /var/run/redis
+# RUN chmod 755 /var/run/redis
+# RUN service redis-server stop
+#RUN sudo usermod -aG redis git # Add git to redis group
 
 # Setup Mainline gitlab binary
 RUN curl -sS https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh | bash
 RUN apt-get install -y gitlab-ce
 RUN curl https://gist.githubusercontent.com/iomonad/3e4d4b5c7a8e7d01609136c08a0af7a9/raw/7bbec521ce949a1beea7bcb747efc8829695cb08/gitlab.rb > /etc/gitlab/gitlab.rb
-RUN sudo initctl restart gitlab-runsvdir
-RUN gitlab-ctl reconfigure
+RUN sudo initctl stop gitlab-runsvdir
+RUN gitlab-ctl start
 RUN ls -l /usr/bin/gitlab-ctl /opt/gitlab/bin/gitlab-ctl
 
 # Database configuration
