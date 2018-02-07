@@ -1,0 +1,108 @@
+FROM alpine:latest
+MAINTAINER Clement T. <me@trosa.io>
+LABEL Description="Create devel Gogs instance"
+LABEL RealTaste="https://hooktube.com/watch?v=t2CN7ZqrXtw"
+
+# Installation steps
+# 1. Packages and Dependencies
+# 2. Ruby
+# 3. Gog
+# 4. Node
+# 5. System Users
+# 6. Database
+# 7. Redis
+# 8. Gitlab
+# 9. Nginx
+
+# (1) Update cache and install packages/essentials
+RUN apk update && apk upgrade --update-cache --available
+RUN apk --no-cache add icu-dev cmake krb5-dev libre2-dev git \
+                       openssh git nginx postgresql redis nodejs-current \
+                       icu-libs libre2 postgresql-contrib ruby ruby-irb \
+                       ruby-io-console sudo procps libpq iptables openrc
+RUN apk add --no-cache --virtual .build-deps gcc g++ make cmake linux-headers \
+                       icu-dev ruby-dev musl-dev postgresql-dev zlib-dev \
+                       libffi-dev libre2-dev python2 go yarn tzdata ruby-rdoc
+RUN rm -rf /var/cache/apk/*
+
+# Pre Hooks
+RUN adduser -D -g 'GitLab' git
+ENV LANG en_US.utf8
+RUN mkdir -p /run/postgresql
+RUN mkdir -p /var/gitlab
+RUN mkdir -p /var/gitlab/data /var/gitlab/repo /var/gitlab/config
+RUN chown -R git:git /var/gitlab
+RUN sed -i "s/git:!/git:*/" /etc/shadow
+RUN chown postgres:postgres /var/gitlab/data /run/postgresql
+RUN echo "postgres ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+# Prepare and start database
+USER postgres
+ENV PGHOST localhost
+ENV PGUSER git
+ENV PGPASSWORD pass
+#ENV PGPORT 1337
+# ENV PGDATA /var/gitlab/data
+# RUN pg_ctl initdb -o "-A trust"
+# RUN echo "host all  all    0.0.0.0/0  trust" >> /var/gitlab/data/pg_hba.conf
+# RUN sed -ri "s/^#(listen_addresses\s*=\s*)\S+/\1'localhost'/" /var/gitlab/data/postgresql.conf
+# RUN echo "port = 1337" >> /var/gitlab/data/postgresql.conf
+# RUN pg_ctl start -w -o "-c listen_addresses='*'"
+#RUN psql -d template1 -c "CREATE USER git CREATEDB;"
+RUN psql -d template1 -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+#RUN psql -d template1 -c "CREATE DATABASE gitlabhq_production OWNER git;"
+
+# Prepare redis config
+USER root
+RUN cp /etc/redis.conf /etc/redis.conf.orig
+RUN sed 's/^port .*/port 0/' /etc/redis.conf.orig | sudo tee /etc/redis.conf
+RUN echo 'unixsocket /var/run/redis.sock' | sudo tee -a /etc/redis.conf
+RUN echo 'unixsocketperm 770' | sudo tee -a /etc/redis.conf
+RUN mkdir -p /var/run/redis
+RUN chown redis:redis /var/run/redis
+RUN chmod 755 /var/run/redis
+#RUN rc-service redis start
+
+# Build Gitlab
+USER git
+WORKDIR /home/git
+RUN git clone https://gitlab.com/gitlab-org/gitlab-ce.git gitlab
+WORKDIR /home/git/gitlab
+RUN cp config/gitlab.yml.example config/gitlab.yml
+COPY .conf/gitlab.rb /etc/gitlab/gitlab.rb
+# Update host
+RUN cp config/secrets.yml.example config/secrets.yml
+RUN chmod 0600 config/secrets.yml
+USER root
+RUN chown -R git log/
+RUN chown -R git tmp/
+RUN chmod -R u+rwX,go-w log/
+RUN chmod -R u+rwX tmp/
+RUN sudo chmod -R u+rwX tmp/pids/
+RUN sudo chmod -R u+rwX tmp/sockets/
+USER git
+RUN mkdir public/uploads/
+USER root
+RUN chmod 0700 public/uploads
+RUN chmod -R u+rwX builds/
+RUN chmod -R u+rwX shared/artifacts/
+RUN chmod -R ug+rwX shared/pages/
+USER git
+RUN git config --global core.autocrlf input
+RUN git config --global gc.auto 0
+RUN git config --global repack.writeBitmaps true
+RUN git config --global receive.advertisePushOptions true
+RUN cp config/resque.yml.example config/resque.yml
+# edit redis docket
+# sudo -u git -H editor config/resque.yml
+
+# Install gems
+USER root
+RUN gem install bundle bigdecimal
+USER git
+RUN bundle install --deployment --without development test mysql aws kerberos
+
+RUN bundle exec rake gitlab:check RAILS_ENV=production
+
+EXPOSE 22/tcp 80/tcp 1337
+ENTRYPOINT echo test
